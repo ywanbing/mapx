@@ -1,6 +1,8 @@
 package mapx
 
-import "sync"
+import (
+	"sync"
+)
 
 type Mapx[K comparable, V any] struct {
 	keys []K
@@ -26,7 +28,7 @@ func NewMapx[K comparable, V any](size int) *Mapx[K, V] {
 }
 
 func (m *Mapx[K, V]) Set(k K, v V) {
-	if m.len > m.maxSize {
+	if m.len >= m.maxSize {
 		m.insertmap(k, v)
 	} else if idx := m.index(k); idx != -1 {
 		m.update(idx, v)
@@ -36,7 +38,7 @@ func (m *Mapx[K, V]) Set(k K, v V) {
 }
 
 func (m *Mapx[K, V]) Get(k K) (v V) {
-	if m.len > m.maxSize {
+	if m.len >= m.maxSize {
 		return m.m[k]
 	}
 
@@ -61,13 +63,14 @@ func (m *Mapx[K, V]) GetOk(k K) (v V, ok bool) {
 }
 
 func (m *Mapx[K, V]) Del(k K) {
-	if m.len > m.maxSize {
+	if m.len >= m.maxSize {
 		delete(m.m, k)
 		m.len = len(m.m)
 
-		if m.len <= m.maxSize {
+		if m.len < m.maxSize {
 			m.narrow()
 		}
+		return
 	}
 
 	if idx := m.index(k); idx != -1 {
@@ -84,7 +87,7 @@ func (m *Mapx[K, V]) update(idx int, v V) {
 }
 
 func (m *Mapx[K, V]) insert(k K, v V) {
-	if m.len < m.maxSize {
+	if m.len+1 < m.maxSize {
 		m.keys = append(m.keys, k)
 		m.vals = append(m.vals, v)
 		m.len++
@@ -132,7 +135,7 @@ func (m *Mapx[K, V]) index(k K) int {
 		return -1
 	}
 
-	if m.len > m.maxSize {
+	if m.len >= m.maxSize {
 		panic("The data is in the map, this method should not be used")
 	}
 
