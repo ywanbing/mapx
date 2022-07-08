@@ -28,7 +28,7 @@ func NewMapx[K comparable, V any](size int) *Mapx[K, V] {
 }
 
 func (m *Mapx[K, V]) Set(k K, v V) {
-	if m.len >= m.maxSize {
+	if m.len > m.maxSize {
 		m.insertmap(k, v)
 	} else if idx := m.index(k); idx != -1 {
 		m.update(idx, v)
@@ -38,15 +38,15 @@ func (m *Mapx[K, V]) Set(k K, v V) {
 }
 
 func (m *Mapx[K, V]) Get(k K) (v V) {
-	if m.len >= m.maxSize {
+	if m.len > m.maxSize {
 		return m.m[k]
 	}
 
 	if idx := m.index(k); idx != -1 {
 		return m.vals[idx]
 	}
-
 	return v
+
 }
 
 func (m *Mapx[K, V]) GetOk(k K) (v V, ok bool) {
@@ -63,11 +63,11 @@ func (m *Mapx[K, V]) GetOk(k K) (v V, ok bool) {
 }
 
 func (m *Mapx[K, V]) Del(k K) {
-	if m.len >= m.maxSize {
+	if m.len > m.maxSize {
 		delete(m.m, k)
 		m.len = len(m.m)
 
-		if m.len < m.maxSize {
+		if m.len <= m.maxSize {
 			m.narrow()
 		}
 		return
@@ -87,7 +87,7 @@ func (m *Mapx[K, V]) update(idx int, v V) {
 }
 
 func (m *Mapx[K, V]) insert(k K, v V) {
-	if m.len+1 < m.maxSize {
+	if m.len < m.maxSize {
 		m.keys = append(m.keys, k)
 		m.vals = append(m.vals, v)
 		m.len++
@@ -135,7 +135,7 @@ func (m *Mapx[K, V]) index(k K) int {
 		return -1
 	}
 
-	if m.len >= m.maxSize {
+	if m.len > m.maxSize {
 		panic("The data is in the map, this method should not be used")
 	}
 
@@ -153,12 +153,13 @@ func (m *Mapx[K, V]) Len() int {
 
 // Range 遍历map元素，最好不要通过它来循环删除元素
 func (m *Mapx[K, V]) Range(f func(k K, v V)) {
-	if m.len >= m.maxSize {
+	if m.len > m.maxSize {
 		for k, v := range m.m {
 			f(k, v)
 		}
 		return
 	}
+
 	for i := 0; i < m.len; i++ {
 		f(m.keys[i], m.vals[i])
 	}
