@@ -150,3 +150,16 @@ func (m *Mapx[K, V]) index(k K) int {
 func (m *Mapx[K, V]) Len() int {
 	return m.len
 }
+
+// Range 遍历map元素，最好不要通过它来循环删除元素
+func (m *Mapx[K, V]) Range(f func(k K, v V)) {
+	if m.len >= m.maxSize {
+		for k, v := range m.m {
+			f(k, v)
+		}
+		return
+	}
+	for i := 0; i < m.len; i++ {
+		f(m.keys[i], m.vals[i])
+	}
+}
