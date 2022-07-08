@@ -30,6 +30,30 @@ func TestMapx_Get(t *testing.T) {
 	}
 }
 
+func TestMapx_Get_Map(t *testing.T) {
+	m := NewMapx[int, int32](8)
+	for i := 0; i < 16; i++ {
+		m.Set(int(i), int32(i))
+	}
+
+	for i := 0; i < 50; i++ {
+		n := rand.Int31n(16)
+		v := m.Get(int(n))
+		fmt.Println(v)
+	}
+
+	for i := 0; i < 10; i++ {
+		m.Del(int(i))
+	}
+
+	for i := 0; i < 20; i++ {
+		n := rand.Int31n(16)
+		v := m.Get(int(n))
+		fmt.Println(v)
+	}
+
+}
+
 func Benchmark_Get8(b *testing.B) {
 	mx := NewMapx[int, int32](8)
 	m := make(map[int]int32, 8)
@@ -69,6 +93,28 @@ func Benchmark_Get16(b *testing.B) {
 	b.Run("map", func(b *testing.B) {
 		for i := 0; i < b.N; i++ {
 			i2 := m[i%16]
+			_ = i2
+		}
+	})
+}
+
+func Benchmark_Get20(b *testing.B) {
+	mx := NewMapx[int, int32](20)
+	m := make(map[int]int32, 20)
+	for i := 0; i < 20; i++ {
+		mx.Set(int(i), int32(i))
+		m[i] = int32(i)
+	}
+
+	b.Run("Mapx", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			mx.Get(i % 20)
+		}
+	})
+
+	b.Run("map", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			i2 := m[i%20]
 			_ = i2
 		}
 	})
